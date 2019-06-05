@@ -182,6 +182,9 @@ def game_loop():
     idx = 0
     ##My Code Here
     while not game_exit:
+        # Sets background to white
+        gameDisplay.fill(white)
+
         if game_over is True:
             message_to_screen("Game Over", red, y_displace=-50, size="large")
             message_to_screen("Press C to play again or Q to quit", black,
@@ -189,6 +192,7 @@ def game_loop():
             pygame.display.update()
 
         while game_over is True:
+            request_q.put((lead_x_change, lead_y_change))
             lst = []
             idx = 0
             for event in pygame.event.get():
@@ -202,8 +206,12 @@ def game_loop():
                     if event.key == pygame.K_c:
                         game_loop()
 
-        lead_x_change = 0
-        lead_y_change = 0
+        if lead_x > display_width or lead_x < 0 or lead_y > display_height \
+                or lead_y < 0:
+            game_over = True
+
+        lead_x_change, lead_y_change = 0, 0
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 game_exit = True
@@ -243,20 +251,13 @@ def game_loop():
                 lead_x_change = 0
             idx += 1
 
-
-
         # Creates the boundaries for the game
-        if lead_x > display_width or lead_x < 0 or lead_y > display_height\
-                or lead_y < 0:
-            game_over = True
 
 
         # Adds or subtracts from lead_x
-        lead_x += lead_x_change
-        lead_y += lead_y_change
-
-        # Sets background to white
-        gameDisplay.fill(white)
+        snake_head = [lead_x, lead_y]
+        snake_head[0] += lead_x_change
+        snake_head[1] += lead_y_change
 
         # Draw a rectangle (where, color, [dimensions])
         # pygame.draw.rect(gameDisplay, red, [rand_apple_x, rand_apple_y,
@@ -267,12 +268,11 @@ def game_loop():
 
         # creates the snake and will make it longer by appending last known
         # place
-        snake_head = [lead_x, lead_y]
-        snake_list.append(snake_head)
-
-        if len(snake_list) > snake_length:
-            del snake_list[0]
-
+        if [lead_x_change,lead_y_change] != [0,0]:
+            snake_list.append(snake_head)
+            if len(snake_list) > snake_length:
+                del snake_list[0]
+        
         for each_segment in snake_list[:-1]:
             if each_segment == snake_head:
                 game_over = True
@@ -284,15 +284,15 @@ def game_loop():
         snake = util.Snake(snake_head, snake_list)
 
         pygame.display.update()
-        last_move = direction
 
         if lead_x == rand_apple_x and lead_y == rand_apple_y:
             rand_apple_x, rand_apple_y = rand_apple_gen()
             snake_length += 1
             problem = util.Problem(snake,[rand_apple_x,rand_apple_y], request_q)
             lst = agent.DepthFirstSearch(problem)
-            request_q.put(snake_length-1)
             idx = 0
+            request_q.put(snake_length-1)
+
 
 
         # Specify FPS
