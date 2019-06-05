@@ -74,21 +74,37 @@ def pause():
                     quit()
         clock.tick(5)
 
+def check_available_point(snake):
+    available_point=[]
+    for i in range(0,display_width - apple_thickness,apple_thickness):
+        for j in range(0,display_height - apple_thickness,apple_thickness):
+            tmp=[]
+            tmp.append(i)
+            tmp.append(j)
+            if tmp not in snake.snakebody:
+                available_point.append(tmp)
 
+    return available_point
 def score(score):
     text = small_font.render("Score: " + str(score), True, black)
     gameDisplay.blit(text, [0, 0])
 
 
-def rand_apple_gen():
+def rand_apple_gen(snake):
+    available_point=check_available_point(snake)
+    rand_apple= random.choice(available_point)
+    rand_apple_x=rand_apple[0]
+    rand_apple_y=rand_apple[1]
+    request_q.put(rand_apple)
+    '''
     rand_apple_x = round(random.randrange(0, display_width - apple_thickness))
     rand_apple_x -= rand_apple_x%20
     rand_apple_y = round(random.randrange(0, display_height - apple_thickness))
     rand_apple_y -= rand_apple_y%20
+    '''
     return rand_apple_x, rand_apple_y
 
 
-rand_apple_x, rand_apple_y = rand_apple_gen()
 
 
 def game_intro():
@@ -173,9 +189,9 @@ def game_loop():
     snake_list = []
     snake_length = 1
 
-    rand_apple_x, rand_apple_y = rand_apple_gen()
     ## My Code Here
     snake = util.Snake([lead_x,lead_y], snake_list)
+    rand_apple_x, rand_apple_y = rand_apple_gen(snake)
     problem = util.Problem(snake,[rand_apple_x,rand_apple_y], request_q)
     request_q.put('Start DFS')
     lst = agent.DepthFirstSearch(problem)
@@ -287,7 +303,7 @@ def game_loop():
         last_move = direction
 
         if lead_x == rand_apple_x and lead_y == rand_apple_y:
-            rand_apple_x, rand_apple_y = rand_apple_gen()
+            rand_apple_x, rand_apple_y = rand_apple_gen(snake)
             snake_length += 1
             problem = util.Problem(snake,[rand_apple_x,rand_apple_y], request_q)
             lst = agent.DepthFirstSearch(problem)
