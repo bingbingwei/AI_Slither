@@ -1,4 +1,5 @@
 import util
+
 def duplicateSnake(snake):
     body_lst = []
     for item in snake.snakebody:
@@ -134,3 +135,81 @@ def BreadthFirstSearch(problem):
     else:
         problem.printDebug("NOT FOUND")
         return []
+def nullHeuristic(state, problem=None):
+    """
+    A heuristic function estimates the cost from the current state to the nearest
+    goal in the provided SearchProblem.  This heuristic is trivial.
+    """
+    return 0
+
+def aStarSearch(problem, heuristic=nullHeuristic):
+    """Search the node that has the lowest combined cost and heuristic first."""
+    snake= problem.snake
+    start_state= snake.snakehead
+    map_pri_q=  util.PriorityQueue()
+
+    map_pri_q.push(snake,0+heuristic(start_pos,problem.apple))
+    parent_dict={}
+    priority={}
+    parent_dict[start_pos]='root'
+    priority['root']=0
+    priority[start_state]=0
+    passed_point=[]
+    route_dict={}
+    snake_current = 0
+    while not map_pri_q.isEmpty():
+        snake_current = map_pri_q.pop()
+        if (snake_current.snakehead == problem.apple):
+            problem.printDebug('FOUND')
+            found = True
+            break
+
+        for move in snake_current.checkMove():
+            snake_new = duplicateSnake(snake_current)
+            snake_new.move(move)
+            if str(snake_new.snakehead) in passed_point:
+                continue
+            else:
+                if(str(snake_new.snakehead) in  parent_dict) : 
+                    if(priority[str(snake_new.snakehead)] >priority[str(snake_current.snakehead)]+1):
+                        priority[str(snake_new.snakehead)] =priority[str(snake_current.snakehead)]+1
+                        parent_dict[str(snake_new.snakehead)] = [str(snake_current.snakehead),move]
+                        map_pri_q.push(snake_new,priority[str(snake_new.snakehead)]+manhattanDistance(snake_new.head,problem.apple))
+                else:
+                    priority[str(snake_new.snakehead)] =priority[str(snake_current.snakehead)]+1
+                    parent_dict[str(snake_new.snakehead)] = [str(snake_current.snakehead),move]
+                    map_pri_q.push(snake_new,priority[str(snake_new.snakehead)]+manhattanDistance(snake_new.head,problem.apple))
+        '''
+        for n in successors : 
+
+            if (n[0] not in passed_point):
+                if (n[0] in parent_dict ):
+                    if priority[n[0]] > priority[node[0]] + n[2]:
+                        priority[n[0]] =  priority[node[0]] + n[2]
+                        parent_dict[n[0]] = node[0]
+                        route_dict[n[0]]= n[1]
+                        map_pri_q.push(n,priority[n[0]]+heuristic(n[0],problem))
+                else:
+                    parent_dict[n[0]]=node[0]
+                    route_dict[n[0]]=n[1]
+                    priority[n[0]]=priority[node[0]]+n[2]
+                    map_pri_q.push(n,priority[n[0]]+heuristic(n[0],problem))
+        '''
+    if found:
+        canfindtail = findtail(snake_current)
+        if (canfindtail):
+            current_pos, move = parent_lst[str(snake_current.snakehead)]
+            while current_pos != start_state:
+                lst.append(move)
+                current_pos, move = parent_lst[str(current_pos)]
+            lst.append(move)
+            lst.reverse()
+            return lst
+        else:
+            problem.printDebug("CAN'T FOUND TAIL")
+            return []
+        
+    else:
+        problem.printDebug("NOT FOUND")
+        return []
+        
