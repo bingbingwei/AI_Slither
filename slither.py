@@ -13,12 +13,12 @@ class Color:
         self.red = (255, 0, 0)
         self.green = (0, 155, 0)
 class Slither:
-    def __init__(self):
-        self.display_width = 400
-        self.display_height = 400
+    def __init__(self, width, height):
+        self.display_width = width
+        self.display_height = height
         self.block_size = 20
         self.apple_thickness = 20
-        self.FPS = 4000
+        self.FPS = 1000
         self.clock = ''
         self.gameDisplay = ''
         self.img = ''
@@ -62,7 +62,7 @@ class Slither:
                         quit()
             self.clock.tick(5)
 
-    def runGame(self):
+    def runGame(self, method):
         def console(request):
             while True:
                 if not request.empty():
@@ -72,7 +72,7 @@ class Slither:
         thread_console.daemon = True
         thread_console.start()
         self.gameIntro()
-        self.game_loop()
+        self.game_loop(method)
 
     def check_available_point(self,snake):
         available_point=[]
@@ -87,13 +87,13 @@ class Slither:
     def printScore(self, score):
         text = self.small_font.render("Score: " + str(score), True, Color().black)
         self.gameDisplay.blit(text, [0, 0])
-
+    def printLog(self,msg):
+        self.queue.put(msg)
     def rand_apple_gen(self, snake):
         available_point = self.check_available_point(snake)
         rand_apple = random.choice(available_point)
         rand_apple_x = rand_apple[0]
         rand_apple_y = rand_apple[1]
-
         return [rand_apple_x, rand_apple_y]
     def gameIntro(self):
         intro = True
@@ -131,6 +131,8 @@ class Slither:
             head = self.img
         if self.direction == "down":
             head = pygame.transform.rotate(self.img, 180)
+        if self.direction == "idle":
+            head = self.img
         self.gameDisplay.blit(head, (snake_list[-1][0], snake_list[-1][1]))
 
         for XnY in snake_list[:-1]:
@@ -149,22 +151,18 @@ class Slither:
         text_surf, text_rect = self.text_objects(msg, color, size)
         text_rect.center = (self.display_width / 2), (self.display_height / 2) + y_displace
         self.gameDisplay.blit(text_surf, text_rect)
-    def game_loop(self):
+    def game_loop(self, method):
         self.direction = "right"
         game_exit = False
         game_over = False
         # Will be the leader of the #1 block of the snake
-        lead_x = self.display_width / 2
-        lead_y = self.display_height / 2
-        snake_list = [[lead_x,lead_y]]
-        snake_length = 1
-
+        snake_list = [[self.display_width/2, self.display_height/2]]
+        #snake_length = 1
         ## My Code Here
-        self.snake = util.Snake([lead_x,lead_y], snake_list)
+        self.snake = util.Snake([self.display_width/2, self.display_height/2], snake_list, self.display_width, self.display_height)
         apple = self.rand_apple_gen(self.snake)
-        problem = util.Problem(self.snake,apple, self.queue)
-        self.queue.put('Start DFS')
-        lst = agent.BreadthFirstSearch(problem)
+        problem = util.Problem(self.snake ,apple, self.queue)
+        lst = method(problem)
         idx = 0
         ##My Code Here
         while not game_exit:
@@ -175,7 +173,6 @@ class Slither:
                 pygame.display.update()
 
             while game_over is True:
-                #request_q.put((lead_x_change, lead_y_change))
                 lst = []
                 idx = 0
                 for event in pygame.event.get():
@@ -187,106 +184,61 @@ class Slither:
                             game_exit = True
                             game_over = False
                         if event.key == pygame.K_c:
-                            self.game_loop()
-
-            lead_x_change = 0
-            lead_y_change = 0
+                            self.game_loop(method)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     game_exit = True
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_LEFT:
                         self. direction = "left"
-                        lead_x_change = -self.block_size
-                        lead_y_change = 0
                     elif event.key == pygame.K_RIGHT:
                         self.direction = "right"
-                        lead_x_change = self.block_size
-                        lead_y_change = 0
                     elif event.key == pygame.K_UP:
                         self.direction = "up"
-                        lead_y_change = -self.block_size
-                        lead_x_change = 0
                     elif event.key == pygame.K_DOWN:
                         self.direction = "down"
-                        lead_y_change = self.block_size
-                        lead_x_change = 0
                     elif event.key == pygame.K_p:
                         self.pause()
 
             if idx<len(lst):
                 self.direction = lst[idx]
-                if self.direction == 'left':
-                    lead_x_change = -self.block_size
-                    lead_y_change = 0
-                elif self.direction == 'right':
-                    lead_x_change = self.block_size
-                    lead_y_change = 0
-                elif self.direction == 'up':
-                    lead_y_change = -self.block_size
-                    lead_x_change = 0
-                elif self.direction == 'down':
-                    lead_y_change = self.block_size
-                    lead_x_change = 0
                 idx += 1
+            else:
+                self.direction = 'idle'
 
-
-
-            # Creates the boundaries for the game
-            if lead_x >= self.display_width or lead_x < 0 or lead_y >= self.display_height\
-                    or lead_y < 0:
+            # Define GAMEOVER Situation
+            if self.snake.snakehead[0] >= self.display_width or  self.snake.snakehead[0] < 0 or  self.snake.snakehead[1] >= self.display_height\
+                    or  self.snake.snakehead[1] < 0:
                 game_over = True
+            for each_segment in snake_list[:-1]:
+                if each_segment == self.snake.snakehead:
+                    game_over = True
 
+            if self.direction != 'idle':
+                self.snake.move(self.direction)
 
-            # Adds or subtracts from lead_x
-            lead_x += lead_x_change
-            lead_y += lead_y_change
-            snake_head = [lead_x, lead_y]
-
-            # Sets background to white
             self.gameDisplay.fill(Color().white)
-
-            # Draw a rectangle (where, color, [dimensions])
-            # pygame.draw.rect(gameDisplay, red, [rand_apple_x, rand_apple_y,
-            # apple_thickness, apple_thickness])
             self.gameDisplay.blit(self.img2, [apple[0], apple[1], self.apple_thickness,
                                      self.apple_thickness])
 
-            # creates the snake and will make it longer by appending last known
-            # place
-            if [lead_x_change,lead_y_change] != [0,0]:
-                snake_list.append(snake_head)
-
-                if len(snake_list) > snake_length:
-                    del snake_list[0]
-
-            for each_segment in snake_list[:-1]:
-                if each_segment == snake_head:
-                    game_over = True
-
-            #Define how the snake moves
-            self.snakeMove(snake_list)
-            self.printScore(snake_length - 1)
-
-            self.snake = util.Snake(snake_head, snake_list)
-
+            self.snakeMove(self.snake.snakebody)
+            self.printScore(len(self.snake.snakebody) - 1)
             pygame.display.update()
 
-            if [lead_x, lead_y] == apple:
+            # Define the steps you wanna take next time TOMLIAO
+            if self.snake.snakehead == apple:
                 apple = self.rand_apple_gen(self.snake)
-                snake_length += 1
+                self.snake.snake_length += 1
                 problem = util.Problem(self.snake,apple, self.queue)
-                lst = agent.BreadthFirstSearch(problem)
+                lst = method(problem)
                 idx = 0
             else:
                 if idx == len(lst):
-                    self.queue.put("find far point")
                     problem = util.Problem(self.snake, apple, self.queue)
                     lst = agent.BreadthFirstSearch(problem)
                     if len(lst) == 0:
                         lst = agent.chooseFartestpoint(problem)
                     idx = 0
-                    self.queue.put(lst)
             # Specify FPS
             self.clock.tick(self.FPS)
         pygame.quit()
