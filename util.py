@@ -1,4 +1,5 @@
 from multiprocessing import Queue# initialize the module
+import slither
 class Stack:
     def __init__(self):
         self.list = []
@@ -29,25 +30,28 @@ class Problem:
         self.snake = snake
         self.apple = apple
         self.queue_communicate = queue
-    def printDebug(self,msg):
+    def printLog(self,msg):
         self.queue_communicate.put(msg)
 class Snake:
-    def __init__(self,snakehead,snakebody):
+    def __init__(self,snakehead,snakebody, width, height):
         self.snakehead = snakehead
         self.snakebody = snakebody
+        self.snake_length = 1
+        self.width = width
+        self.height = height
     def checkMove(self):
         legal_move = []
         position = [self.snakehead[0]-20, self.snakehead[1]]
         if position not in self.snakebody and position[0]>=0:
             legal_move.append('left')
         position = [self.snakehead[0]+20, self.snakehead[1]]
-        if position not in self.snakebody and position[0]<400:
+        if position not in self.snakebody and position[0]<self.width:
             legal_move.append('right')
         position = [self.snakehead[0], self.snakehead[1]-20]
         if position not in self.snakebody and position[1]>=0:
             legal_move.append('up')
         position = [self.snakehead[0], self.snakehead[1]+20]
-        if position not in self.snakebody and position[1]<400:
+        if position not in self.snakebody and position[1]<self.height:
             legal_move.append('down')
         return legal_move
     def move(self, direction):
@@ -60,7 +64,9 @@ class Snake:
         elif direction == 'right':
             self.snakehead = [self.snakehead[0]+20,self.snakehead[1]]
         self.snakebody.append(self.snakehead)
-        del self.snakebody[0]
+        if len(self.snakebody) > self.snake_length:
+            del self.snakebody[0]
+
 
 class PriorityQueue:
     """

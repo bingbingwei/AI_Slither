@@ -4,7 +4,7 @@ def duplicateSnake(snake):
     body_lst = []
     for item in snake.snakebody:
         body_lst.append(item)
-    snake_new = util.Snake([snake.snakehead[0], snake.snakehead[1]], body_lst)
+    snake_new = util.Snake([snake.snakehead[0], snake.snakehead[1]], body_lst, snake.width, snake.height)
     return snake_new
 
 def DepthFirstSearch(problem):
@@ -21,7 +21,7 @@ def DepthFirstSearch(problem):
         snake_current = stack.pop()
         visited.append(snake_current.snakehead)
         if snake_current.snakehead == problem.apple:
-            problem.printDebug('FOUND')
+            problem.printLog('FOUND')
             found = True
             break
 
@@ -41,7 +41,7 @@ def DepthFirstSearch(problem):
         lst.reverse()
         return lst
     else:
-        problem.printDebug("NOT FOUND")
+        problem.printLog("NOT FOUND")
         return []
 def findtail(snake):
     visited = []
@@ -101,12 +101,10 @@ def BreadthFirstSearch(problem):
     found = False
     while not queue.isEmpty():
         snake_current = queue.pop()
-        #visited.append(snake_current.snakehead)
         if snake_current.snakehead == problem.apple:
-            problem.printDebug('FOUND')
+            problem.printLog('FOUND')
             found = True
             break
-
         for move in snake_current.checkMove():
             snake_new = duplicateSnake(snake_current)
             snake_new.move(move)
@@ -115,10 +113,6 @@ def BreadthFirstSearch(problem):
             parent_lst[str(snake_new.snakehead)] = [snake_current.snakehead, move]
             queue.push(snake_new)
     if found:
-        ##check if can find tail
-        ##problem.printDebug('snake')
-        ##problem.printDebug(snake_current.snakehead)
-        ##problem.printDebug(snake_current.snakebody)
         canfindtail = findtail(snake_current)
         if (canfindtail):
             current_pos, move = parent_lst[str(snake_current.snakehead)]
@@ -129,11 +123,11 @@ def BreadthFirstSearch(problem):
             lst.reverse()
             return lst
         else:
-            problem.printDebug("CAN'T FOUND TAIL")
+            problem.printLog("CAN'T FOUND TAIL")
             return []
         
     else:
-        problem.printDebug("NOT FOUND")
+        problem.printLog("NOT FOUND")
         return []
 def nullHeuristic(state, problem=None):
     """
