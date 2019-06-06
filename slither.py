@@ -235,7 +235,7 @@ class Slither:
             else:
                 if idx == len(lst):
                     problem = util.Problem(self.snake, apple, self.queue)
-                    lst = agent.BreadthFirstSearch(problem)
+                    lst = method(problem)
                     if len(lst) == 0:
                         lst = agent.chooseFartestpoint(problem)
                     idx = 0
