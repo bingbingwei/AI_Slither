@@ -71,10 +71,11 @@ def chooseFartestpoint(problem):
     farest_dis= 0
     lst=[]
     choice = 'up'
+    snake=problem.snake
     for move in snake.checkMove():
         snake_new = duplicateSnake(snake)
         snake_new.move(move)
-        if canfindtail(snake_new):
+        if findtail(snake_new):
             dis= manhattanDistance(problem.apple,snake_new.snakehead)
             if (dis >farest_dis):
                 farest_dis = dis

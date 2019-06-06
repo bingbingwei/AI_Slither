@@ -41,7 +41,7 @@ clock = pygame.time.Clock()
 
 block_size = 20
 apple_thickness = 20
-FPS = 2000
+FPS = 4000
 direction = "right"
 
 # Font size
@@ -309,7 +309,7 @@ def game_loop():
             problem = util.Problem(snake,[rand_apple_x,rand_apple_y], request_q)
             lst = agent.BreadthFirstSearch(problem)
             if len(lst)==0:
-                lst = chooseFartestpoint(problem)
+                lst = agent.chooseFartestpoint(problem)
             idx = 0
 
 
