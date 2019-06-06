@@ -186,7 +186,7 @@ def game_loop():
 
     # list is for the length of the snake (Note: the last item in list is
     # the head)
-    snake_list = []
+    snake_list = [[lead_x,lead_y]]
     snake_length = 1
 
     ## My Code Here
@@ -205,7 +205,7 @@ def game_loop():
             pygame.display.update()
 
         while game_over is True:
-            request_q.put((lead_x_change, lead_y_change))
+            #request_q.put((lead_x_change, lead_y_change))
             lst = []
             idx = 0
             for event in pygame.event.get():
@@ -308,8 +308,9 @@ def game_loop():
             snake_length += 1
             problem = util.Problem(snake,[rand_apple_x,rand_apple_y], request_q)
             lst = agent.BreadthFirstSearch(problem)
+            if len(lst)==0:
+                lst = chooseFartestpoint(problem)
             idx = 0
-            request_q.put(snake_length-1)
 
 
 
