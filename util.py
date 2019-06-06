@@ -41,13 +41,13 @@ class Snake:
         if position not in self.snakebody and position[0]>=0:
             legal_move.append('left')
         position = [self.snakehead[0]+20, self.snakehead[1]]
-        if position not in self.snakebody and position[0]<=800:
+        if position not in self.snakebody and position[0]<400:
             legal_move.append('right')
         position = [self.snakehead[0], self.snakehead[1]-20]
         if position not in self.snakebody and position[1]>=0:
             legal_move.append('up')
         position = [self.snakehead[0], self.snakehead[1]+20]
-        if position not in self.snakebody and position[1]<=600:
+        if position not in self.snakebody and position[1]<400:
             legal_move.append('down')
         return legal_move
     def move(self, direction):

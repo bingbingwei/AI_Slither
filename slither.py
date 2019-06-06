@@ -14,8 +14,8 @@ red = (255, 0, 0)
 green = (0, 155, 0)
 
 # window display
-display_width = 800
-display_height = 600
+display_width = 400
+display_height = 400
 
 # returns a python.game surface object.
 gameDisplay = pygame.display.set_mode((display_width, display_height))
@@ -41,7 +41,7 @@ clock = pygame.time.Clock()
 
 block_size = 20
 apple_thickness = 20
-FPS = 2000
+FPS = 4000
 direction = "right"
 
 # Font size
@@ -149,7 +149,7 @@ def snakeMove(block_size, snake_list):
 
     for XnY in snake_list[:-1]:
         pygame.draw.rect(gameDisplay, green,
-                         [XnY[0], XnY[1], block_size, block_size])
+                         [XnY[0], XnY[1], block_size-2, block_size-2])
 
 
 def text_objects(text, color, size):
@@ -186,7 +186,7 @@ def game_loop():
 
     # list is for the length of the snake (Note: the last item in list is
     # the head)
-    snake_list = []
+    snake_list = [[lead_x,lead_y]]
     snake_length = 1
 
     ## My Code Here
@@ -205,7 +205,7 @@ def game_loop():
             pygame.display.update()
 
         while game_over is True:
-            request_q.put((lead_x_change, lead_y_change))
+            #request_q.put((lead_x_change, lead_y_change))
             lst = []
             idx = 0
             for event in pygame.event.get():
@@ -219,8 +219,8 @@ def game_loop():
                     if event.key == pygame.K_c:
                         game_loop()
 
-        #lead_x_change = 0
-        #lead_y_change = 0
+        lead_x_change = 0
+        lead_y_change = 0
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 game_exit = True
@@ -263,7 +263,7 @@ def game_loop():
 
 
         # Creates the boundaries for the game
-        if lead_x > display_width or lead_x < 0 or lead_y > display_height\
+        if lead_x >= display_width or lead_x < 0 or lead_y >= display_height\
                 or lead_y < 0:
             game_over = True
 
@@ -309,7 +309,15 @@ def game_loop():
             problem = util.Problem(snake,[rand_apple_x,rand_apple_y], request_q)
             lst = agent.BreadthFirstSearch(problem)
             idx = 0
-            request_q.put(snake_length-1)
+        else:
+            if idx == len(lst):
+                request_q.put("find far point")
+                problem = util.Problem(snake, [rand_apple_x, rand_apple_y], request_q)
+                lst = agent.BreadthFirstSearch(problem)
+                if len(lst) == 0:
+                    lst = agent.chooseFartestpoint(problem)
+                idx = 0
+                request_q.put(lst)
 
 
 
