@@ -1,5 +1,6 @@
 from multiprocessing import Queue# initialize the module
 import slither
+import heapq
 class Stack:
     def __init__(self):
         self.list = []
