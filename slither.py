@@ -1,4 +1,5 @@
 # import the modules
+import os
 import pygame
 import random
 import threading
@@ -12,6 +13,7 @@ class Color:
         self.black = (255, 255, 255)
         self.red = (255, 0, 0)
         self.green = (0, 155, 0)
+        self.blue = (0,0,255)
 class Slither:
     def __init__(self, width, height):
         self.display_width = width
@@ -95,6 +97,15 @@ class Slither:
         rand_apple_x = rand_apple[0]
         rand_apple_y = rand_apple[1]
         return [rand_apple_x, rand_apple_y]
+    def isgameover(self):
+        game_over = False
+        snake= self.snake
+        if snake.snakehead[0] >= self.display_width or snake.snakehead[0] < 0 or  snake.snakehead[1] >= self.display_height or  snake.snakehead[1] < 0:
+            game_over = True
+        for each_segment in snake.snakebody[:-1]:
+            if each_segment == self.snake.snakehead:
+                game_over = True
+        return game_over
     def gameIntro(self):
         intro = True
         while intro:
@@ -135,7 +146,10 @@ class Slither:
             head = self.img
         self.gameDisplay.blit(head, (snake_list[-1][0], snake_list[-1][1]))
 
-        for XnY in snake_list[:-1]:
+
+        pygame.draw.rect(self.gameDisplay, Color().blue,
+                             [snake_list[0][0], snake_list[0][1], self.block_size - 2, self.block_size - 2])
+        for XnY in snake_list[1:-1]:
             pygame.draw.rect(self.gameDisplay, Color().green,
                              [XnY[0], XnY[1], self.block_size - 2, self.block_size - 2])
 
@@ -185,6 +199,8 @@ class Slither:
                             game_over = False
                         if event.key == pygame.K_c:
                             self.game_loop(method)
+
+                         
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     game_exit = True
@@ -198,21 +214,17 @@ class Slither:
                     elif event.key == pygame.K_DOWN:
                         self.direction = "down"
                     elif event.key == pygame.K_p:
-                        self.pause()
-
+                        self.gamePause()            
             if idx<len(lst):
                 self.direction = lst[idx]
                 idx += 1
             else:
                 self.direction = 'idle'
+            #self.printLog(self.direction)
 
-            # Define GAMEOVER Situation
-            if self.snake.snakehead[0] >= self.display_width or  self.snake.snakehead[0] < 0 or  self.snake.snakehead[1] >= self.display_height\
-                    or  self.snake.snakehead[1] < 0:
-                game_over = True
-            for each_segment in snake_list[:-1]:
-                if each_segment == self.snake.snakehead:
-                    game_over = True
+            game_over = self.isgameover()
+            if game_over:
+                continue
 
             if self.direction != 'idle':
                 self.snake.move(self.direction)
@@ -230,8 +242,8 @@ class Slither:
                 apple = self.rand_apple_gen(self.snake)
                 self.snake.snake_length += 1
                 problem = util.Problem(self.snake,apple, self.queue)
-                lst = method(problem)
-                idx = 0
+                #lst = method(problem)
+                #idx = 0
             else:
                 if idx == len(lst):
                     problem = util.Problem(self.snake, apple, self.queue)
@@ -239,6 +251,8 @@ class Slither:
                     if len(lst) == 0:
                         lst = agent.chooseFartestpoint(problem)
                     idx = 0
+                    self.printLog(lst)
+
             # Specify FPS
             self.clock.tick(self.FPS)
         pygame.quit()
